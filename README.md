@@ -7,37 +7,35 @@ Becas universitarias que se pagan por materia aprobada. Los fondos quedan en un 
 | Carpeta | Contenido |
 |---|---|
 | `contracts/EduTrust.sol` | `MockUSDC` (token de prueba) y `EduTrustBecas`: aportes abiertos desde 1 unidad, ventana de seguridad, fondo común y comisión del 0,3 % encima del aporte (tope 1 %). |
-| `web/` | Demo estática: camino de Brote con seis logros, becas, fondo común, registro de eventos, evidencia de OpenArg y panel "Prueba on-chain". |
-| `web/viaje.html` | **El viaje del dinero**: una página pública por beca (`?beca=N`), sin billetera, con línea de tiempo, control "¿Cuadra?", seguimiento por hash y QR. |
+| `web/config.js`, `web/data/openarg.json` | Direcciones públicas de Sepolia y RPC de respaldo; tres cifras de OpenArg con fuente, fecha y qué no afirmar. |
 | `web/js/ledger-sim.js` | Libro simulado que replica las reglas del contrato. Es el modo de respaldo. |
 | `web/js/chain.js` | Conexión al contrato en Sepolia con ethers v6 y la billetera del navegador. |
 | `web/js/onchain.js`, `web/js/trazabilidad.js` | Lectura pública de la red por RPC (con respaldo) y reconstrucción del viaje del dinero. |
-| `web/js/proposal.js` | Propuesta de reparto del fondo común (motor de reglas). |
-| `web/data/openarg.json` | Tres cifras de OpenArg con fuente, fecha y qué no afirmar. |
+| `web/js/proposal.js`, `web/js/backend.js`, `web/js/scenario.js`, `web/js/util.js` | Propuesta de reparto (motor de reglas), backend simulado o de Sepolia con la misma interfaz, datos de la escena y utilidades. |
 | `scripts/escena.mjs` | `chequeo`, `preparar`, `flujo` y `vigilante` contra Sepolia. |
 | `tests/*.test.mjs`, `tests/chain/` | Pruebas del modo simulado y de la trazabilidad (Node) y del contrato y los scripts (Hardhat). |
 | `docs/hoja-del-equipo.md` | Hoja de una página para el equipo: pasos de la demo, qué decir y qué hacer si algo falla. |
 
-## Correr la demo
+## La capa visual NO está en `main`
 
-Requiere Node.js 20 o superior. La demo no tiene dependencias.
+Las pantallas (portada, camino de Brote, página "El viaje del dinero", estilos) fueron un **prototipo de referencia** y se sacaron de `main`: **la interfaz tiene que adaptarse a lo que está haciendo el compañero que se encarga del UX/UI**, no al revés. Lo que queda en `main` es la lógica que esa interfaz debe consumir:
+
+- `web/js/backend.js`: `crearBackend(config)` devuelve el modo simulado o el de Sepolia con la misma interfaz (`estado`, `depositar`, `registrarAprobacion`, `revocarAprobacion`, `liberar`, `cerrarBeca`, `asignarDeFondo`).
+- `web/js/onchain.js` (`leerOnchain`, `rpcConRespaldo`, `cargarRegistro`) y `web/js/trazabilidad.js` (`reunirViaje`, `construirViaje`, `calcularCuadra`, `seguirTransaccion`): lectura pública de la red y el viaje del dinero de una beca, con el control "¿Cuadra?".
+- `web/js/proposal.js`: `proponerReparto` para el fondo común.
+- `web/data/onchain.json`: respaldo si ningún RPC responde (lo genera `node scripts/escena.mjs flujo`).
+
+El prototipo completo sigue en el historial (commit `6c1d6cc`): `git show 6c1d6cc:web/js/app.js` sirve de ejemplo de cómo se usan esos módulos. Los nombres de botones y pantallas que aparecen en `docs/hoja-del-equipo.md` son los del prototipo: **hay que ajustarlos a la interfaz final**.
+
+## Pruebas
+
+Requiere Node.js 20 o superior.
 
 ```sh
-npm start               # http://127.0.0.1:4178/
-npm test                # pruebas del modo simulado y de la trazabilidad
+npm test                # modo simulado, propuesta de reparto y trazabilidad
 npm run contrato:test   # compila el contrato y corre sus pruebas y las de los scripts (Hardhat)
 npm run contrato:gas    # gas por operación
 ```
-
-Arranca en **modo simulado**: no necesita red ni billeteras. Guion de 60 s:
-
-1. Botón **Ver video (12 s)**: Brote sube y desbloquea los seis logros.
-2. **Aportar** USD 1 a la beca 1 (se ve la comisión de USD 0,003 sumada al aporte).
-3. **Firmar acta** de una materia (Secretaría). Corre la ventana de seguridad y el pago sale solo.
-4. **Cerrar beca**: los USD 30 que sobran van al fondo común.
-5. **Proponer reparto** y **Aprobar y ejecutar**: el fondo completa la beca 2.
-
-`Reiniciar demo` vuelve a la escena inicial. Con `?intro=1` el video arranca solo (sirve para grabarlo).
 
 ## Sepolia
 
@@ -53,7 +51,7 @@ node scripts/escena.mjs vigilante   # paga cuando vence la ventana; liberar() lo
 npm run hoja                        # completa los links de Etherscan en docs/hoja-del-equipo.md
 ```
 
-En vivo: abrir la app con `?modo=sepolia`, conectar MetaMask con la misma cuenta y firmar el acta de la beca que indique `chequeo`. `web/data/onchain.json` alimenta el panel "Prueba on-chain" y `viaje.html` cuando ningún RPC responde.
+En vivo, la interfaz debe usar `crearBackend({ ...config, modo: 'sepolia' })` con MetaMask en la misma cuenta y firmar el acta de la beca que indique `chequeo`. `web/data/onchain.json` es el respaldo de la lectura pública cuando ningún RPC responde.
 
 ## Estado y límites
 

@@ -2,6 +2,8 @@
 
 Pitch de 1 minuto. Se muestra **una sola transacción en vivo**: firmar el acta. El pago sale solo.
 
+> Los nombres de botones y pantallas de esta hoja son los del prototipo visual de referencia (ver el README). **Hay que ajustarlos a la interfaz final** que está armando el equipo de UX/UI.
+
 ## Antes de subir al escenario (10 minutos antes)
 
 1. Terminal 1: `node scripts/escena.mjs chequeo`. Tiene que decir **"LISTA para la demo en vivo"** y el número de beca. Si no, correr `node scripts/escena.mjs preparar` y repetir `chequeo`.

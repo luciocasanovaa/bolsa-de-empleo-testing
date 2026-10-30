@@ -19,7 +19,7 @@ const lineas = [
   '',
   ...r.pasos.map((p) => `- ${p.paso}: ${base}/tx/${p.hash}`),
   '',
-  `Viaje del dinero de la beca de origen: \`viaje.html?beca=${r.becas.origen}\` · de la beca destino: \`viaje.html?beca=${r.becas.destino}\``,
+  `Viaje del dinero (datos en web/data/onchain.json): beca de origen #${r.becas.origen} y beca destino #${r.becas.destino}`,
   `(Generado el ${r.generado.slice(0, 16).replace('T', ' ')} UTC)`,
 ];
 const texto = readFileSync(hoja, 'utf8').replace(/<!-- LINKS -->[\s\S]*<!-- \/LINKS -->/, `<!-- LINKS -->\n${lineas.join('\n')}\n<!-- /LINKS -->`);
