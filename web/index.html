@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EduTrust</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="barra">
+    <div>
+      <h1>EduTrust</h1>
+      <p class="lema">La beca que se paga cuando se avanza</p>
+    </div>
+    <div class="barra-acciones">
+      <a id="btn-viaje" class="boton-fijo" href="viaje.html">Ver el viaje del dinero</a>
+      <span id="modo" class="modo" role="status"></span>
+      <button id="btn-intro" class="secundario" type="button">Ver video (12 s)</button>
+      <button id="btn-reiniciar" class="secundario" type="button">Reiniciar demo</button>
+    </div>
+  </header>
+
+  <main class="escena">
+    <aside class="camino" aria-label="Camino de Brote">
+      <div id="brote"></div>
+      <p class="aviso">Demo con datos ficticios. Las cifras de OpenArg son reales y llevan su fuente.</p>
+    </aside>
+
+    <div class="panel">
+      <section id="onchain" class="tarjeta" aria-label="Prueba on-chain"></section>
+      <section id="evidencia" class="tarjeta" aria-label="Evidencia de OpenArg"></section>
+      <section id="becas" aria-label="Becas"></section>
+      <section id="fondo" class="tarjeta" aria-label="Fondo común"></section>
+      <section id="eventos" class="tarjeta" aria-label="Registro de eventos"></section>
+    </div>
+  </main>
+
+  <div id="intro" class="intro" hidden>
+    <p id="intro-sub" class="intro-sub" aria-live="polite"></p>
+  </div>
+  <div id="aviso" class="toast" role="alert" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

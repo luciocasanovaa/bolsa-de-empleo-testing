@@ -197,7 +197,7 @@ export const descripcion = (e) => ({
 // En qué paso está la plata de una beca (para marcarlo en un camino o línea de progreso).
 export const ETAPAS = ['creada', 'bloqueado', 'acta', 'pagado', 'cerrada', 'fondo'];
 export function etapaDelDinero(viaje) {
-  if (!viaje?.existe) return null;
+  if (!viaje || viaje.existe === false) return null;
   const r = viaje.resumen;
   const cuenta = (tipo) => viaje.eventos.filter((e) => e.tipo === tipo).length;
   const actasVigentes = cuenta('acta') - cuenta('revocada') - cuenta('pago');

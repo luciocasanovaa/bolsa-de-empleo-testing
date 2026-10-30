@@ -45,3 +45,13 @@ export const LOGROS = [
   { key: 'cobro', titulo: 'Cobrado (simulado)', detalle: 'Retiro a pesos de demostración' },
   { key: 'fondo', titulo: 'Fondo común', detalle: 'El saldo sobrante ayuda a otra beca' },
 ];
+
+// Camino de la plata de una beca (página "El viaje del dinero"): mismos pasos que ETAPAS de trazabilidad.js.
+export const LOGROS_VIAJE = [
+  { key: 'creada', titulo: 'Beca creada', detalle: 'Todavía sin fondos' },
+  { key: 'bloqueado', titulo: 'Plata bloqueada', detalle: 'Queda en el contrato' },
+  { key: 'acta', titulo: 'Acta firmada', detalle: 'La Secretaría confirma' },
+  { key: 'pagado', titulo: 'Pago al estudiante', detalle: 'El contrato paga' },
+  { key: 'cerrada', titulo: 'Beca cerrada', detalle: 'Se liquida lo que quedó' },
+  { key: 'fondo', titulo: 'Fondo común', detalle: 'El sobrante ayuda a otro' },
+];

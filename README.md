@@ -7,6 +7,8 @@ Becas universitarias que se pagan por materia aprobada. Los fondos quedan en un 
 | Carpeta | Contenido |
 |---|---|
 | `contracts/EduTrust.sol` | `MockUSDC` (token de prueba) y `EduTrustBecas`: aportes abiertos desde 1 unidad, ventana de seguridad, fondo común y comisión del 0,3 % encima del aporte (tope 1 %). |
+| `web/index.html`, `web/js/app.js`, `web/js/brote.js`, `web/styles.css` | Demo: camino de Brote con seis logros, becas, fondo común, registro de eventos, evidencia de OpenArg, panel "Prueba on-chain" y botón fijo "Ver el viaje del dinero". |
+| `web/viaje.html`, `web/js/viaje.js` | **El viaje del dinero**: una página pública por beca (`?beca=N`), sin billetera: camino de Brote que marca en qué paso está la plata, diagrama, línea de tiempo, control "¿Cuadra?", seguimiento por hash y QR. |
 | `web/config.js`, `web/data/openarg.json` | Direcciones públicas de Sepolia y RPC de respaldo; tres cifras de OpenArg con fuente, fecha y qué no afirmar. |
 | `web/js/ledger-sim.js` | Libro simulado que replica las reglas del contrato. Es el modo de respaldo. |
 | `web/js/chain.js` | Conexión al contrato en Sepolia con ethers v6 y la billetera del navegador. |
@@ -16,16 +18,18 @@ Becas universitarias que se pagan por materia aprobada. Los fondos quedan en un 
 | `tests/*.test.mjs`, `tests/chain/` | Pruebas del modo simulado y de la trazabilidad (Node) y del contrato y los scripts (Hardhat). |
 | `docs/hoja-del-equipo.md` | Hoja de una página para el equipo: pasos de la demo, qué decir y qué hacer si algo falla. |
 
-## La capa visual NO está en `main`
+## Capa visual: prototipo de referencia
 
-Las pantallas (portada, camino de Brote, página "El viaje del dinero", estilos) fueron un **prototipo de referencia** y se sacaron de `main`: **la interfaz tiene que adaptarse a lo que está haciendo el compañero que se encarga del UX/UI**, no al revés. Lo que queda en `main` es la lógica que esa interfaz debe consumir:
+La interfaz (`index.html`, `viaje.html`, `app.js`, `brote.js`, `styles.css`) es un **prototipo de referencia**: **si el equipo de UX/UI arma otra interfaz, esta se adapta a la suya, no al revés**. Toda la lógica está separada y se puede reutilizar sin la interfaz:
 
 - `web/js/backend.js`: `crearBackend(config)` devuelve el modo simulado o el de Sepolia con la misma interfaz (`estado`, `depositar`, `registrarAprobacion`, `revocarAprobacion`, `liberar`, `cerrarBeca`, `asignarDeFondo`).
-- `web/js/onchain.js` (`leerOnchain`, `rpcConRespaldo`, `cargarRegistro`) y `web/js/trazabilidad.js` (`reunirViaje`, `construirViaje`, `calcularCuadra`, `seguirTransaccion`, `etapaDelDinero`, `buscarBecaDeLaEscena`): lectura pública de la red y el viaje del dinero de una beca, con el control "¿Cuadra?". Una beca inexistente devuelve `existe: false` y un `mensaje`: la interfaz debe mostrarlo y ocultar el diagrama y el "¿Cuadra?". `etapaDelDinero` dice en qué paso está la plata (para marcarlo en un camino) y `buscarBecaDeLaEscena` encuentra la beca de la demo leyendo solo la red, sin `onchain.json`.
+- `web/js/onchain.js` (`leerOnchain`, `rpcConRespaldo`, `cargarRegistro`) y `web/js/trazabilidad.js` (`reunirViaje`, `construirViaje`, `calcularCuadra`, `seguirTransaccion`, `etapaDelDinero`, `buscarBecaDeLaEscena`): lectura pública de la red y el viaje del dinero de una beca, con el control "¿Cuadra?". Una beca inexistente devuelve `existe: false` y un `mensaje`: la interfaz debe mostrarlo y ocultar el diagrama y el "¿Cuadra?". `etapaDelDinero` dice en qué paso está la plata y `buscarBecaDeLaEscena` encuentra la beca de la demo leyendo solo la red, sin `onchain.json`.
 - `web/js/proposal.js`: `proponerReparto` para el fondo común.
 - `web/data/onchain.json`: respaldo si ningún RPC responde (lo genera `node scripts/escena.mjs flujo`).
 
-El prototipo completo sigue en el historial (commit `6c1d6cc`): `git show 6c1d6cc:web/js/app.js` sirve de ejemplo de cómo se usan esos módulos. Los nombres de botones y pantallas que aparecen en `docs/hoja-del-equipo.md` son los del prototipo: **hay que ajustarlos a la interfaz final**.
+Los nombres de botones y pantallas de `docs/hoja-del-equipo.md` son los del prototipo.
+
+Para verla: `npm start` y abrir http://127.0.0.1:4178/ (modo simulado, sin billeteras). Guion de 60 s: **Ver video (12 s)**, **Aportar** USD 1 (se ve la comisión de USD 0,003), **Firmar acta** (corre la ventana de seguridad y el pago sale solo), **Cerrar beca** (los USD 30 que sobran van al fondo común), **Proponer reparto** y **Aprobar y ejecutar**. Con `?intro=1` el video arranca solo (sirve para grabarlo) y `?modo=sepolia` usa la red con MetaMask.
 
 ## Pruebas
 
@@ -51,7 +55,7 @@ node scripts/escena.mjs vigilante   # paga cuando vence la ventana; liberar() lo
 npm run hoja                        # completa los links de Etherscan en docs/hoja-del-equipo.md
 ```
 
-En vivo, la interfaz debe usar `crearBackend({ ...config, modo: 'sepolia' })` con MetaMask en la misma cuenta y firmar el acta de la beca que indique `chequeo`. `web/data/onchain.json` es el respaldo de la lectura pública cuando ningún RPC responde.
+En vivo: abrir la app con `?modo=sepolia`, conectar MetaMask con la misma cuenta y firmar el acta de la beca que indique `chequeo` (otra interfaz puede usar `crearBackend({ ...config, modo: 'sepolia' })`). `web/data/onchain.json` es el respaldo de la lectura pública cuando ningún RPC responde.
 
 ## Estado y límites
 
