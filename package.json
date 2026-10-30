@@ -1,0 +1,24 @@
+{
+  "name": "edutrust-hackaton-labitconf26",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Becas por materia que se pagan cuando la universidad confirma el avance. Demo de LABITCONF 2026.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --test \"tests/*.test.mjs\"",
+    "contrato:compilar": "hardhat compile",
+    "contrato:test": "hardhat test",
+    "contrato:desplegar": "hardhat run scripts/desplegar.cjs --network sepolia",
+    "contrato:gas": "hardhat run scripts/gas.cjs",
+    "hoja": "node scripts/hoja.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.6.1",
+    "hardhat": "^2.29.1"
+  }
+}

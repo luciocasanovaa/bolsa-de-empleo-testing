@@ -1,0 +1,55 @@
+{
+  "version": "2026-10-30",
+  "nota": "Cifras calculadas con OpenArg (openarg.org) el 30/10/2026. Cada una se puede repetir con la tabla y la columna indicadas.",
+  "cifras": [
+    {
+      "key": "progresar",
+      "titulo": "La ayuda pública se achica",
+      "grande": "−57 %",
+      "texto": "Beneficiarios de Progresar: 1.870.986 en octubre de 2023 y 811.448 en octubre de 2025, unos 1,06 millones menos (−56,6 %).",
+      "fuente": "Prestaciones de la seguridad social. Seguimiento físico-financiero (datos.gob.ar)",
+      "url": "https://infra.datos.gob.ar/catalog/sspm/dataset/191/distribution/191.1/download/ejecucion-trimestral-metas-fisicas-programas.csv",
+      "tabla": "raw.cache_datos_gob_ar_prestaciones_de_la_seguridad_soc_rcfc6112ff3",
+      "columna": "beneficiarios_progresar",
+      "ultimoDato": "2025-10",
+      "leidaPorOpenArg": "2026-07-31",
+      "cuidado": "Incluye otros niveles, no sólo universitario. Falta el dato de enero de 2025. No prueba que la caída cause más abandono."
+    },
+    {
+      "key": "ipc",
+      "titulo": "El dinero pierde valor antes de cobrarse",
+      "grande": "+14,6 % en 6 meses",
+      "texto": "Los precios al consumidor subieron 14,6 % entre febrero y agosto de 2026, 33,5 % en un año y 78,4 % en dos años (agosto de 2024 a agosto de 2026).",
+      "fuente": "IPC nivel general nacional, base dic 2016 (INDEC, Series de Tiempo)",
+      "url": "https://apis.datos.gob.ar/series/api/series?ids=148.3_INIVELNAL_DICI_M_26",
+      "tabla": "raw.cache_series_inflacion_ipc",
+      "columna": "IPC. Nivel General Nacional. Base dic 2016. Mensual.",
+      "ultimoDato": "2026-08",
+      "leidaPorOpenArg": "2026-10-08",
+      "cuidado": "Es el índice nacional, no el de una zona o canasta de estudiante."
+    },
+    {
+      "key": "territorio",
+      "titulo": "En el territorio, la sobreedad persiste",
+      "grande": "~21 %",
+      "texto": "Sobreedad en el secundario en 2022: 20,9 % en La Matanza y 20,1 % en Lomas de Zamora (donde queda Temperley). Abandono interanual: 2,9 % y 2,7 %.",
+      "fuente": "Indicadores de trayectoria, Provincia de Buenos Aires",
+      "url": "https://catalogo.datos.gba.gob.ar/dataset/indicadores-de-trayectoria",
+      "tabla": "raw.cache_buenos_aires_indicadores_de_trayectoria_rd022227e5a",
+      "columna": "sobreedad_secundaria, abandono_interanual_secundaria",
+      "ultimoDato": "2022",
+      "leidaPorOpenArg": "2026-05-06",
+      "cuidado": "Es nivel secundario, no universitario. Temperley no tiene dato propio: es el partido de Lomas de Zamora. La baja del abandono desde 2012 (7,1 % a 3,0 % de promedio) no apoya decir que sube."
+    }
+  ],
+  "territorios": {
+    "La Matanza": { "sobreedadSecundaria2022": 20.93, "abandonoSecundaria2022": 2.91 },
+    "Lomas de Zamora": { "sobreedadSecundaria2022": 20.12, "abandonoSecundaria2022": 2.69 }
+  },
+  "noAfirmar": [
+    "Que el abandono es por falta de dinero: ningún dato de OpenArg mide la causa.",
+    "Que la caída de Progresar causó más abandono: es una coincidencia temporal.",
+    "Que el abandono sube: en el secundario bonaerense el promedio de los 135 municipios bajó de 7,1 % (2012) a 3,0 % (2022).",
+    "Que 2020 muestra una tendencia: ese año cae a 0,6 % por la pandemia."
+  ]
+}
