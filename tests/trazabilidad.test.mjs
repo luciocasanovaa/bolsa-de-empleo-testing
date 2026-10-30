@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ethers } from 'ethers';
-import { calcularCuadra, construirViaje, decodificarLog } from '../web/js/trazabilidad.js';
+import { buscarBecaDeLaEscena, calcularCuadra, construirViaje, decodificarLog, etapaDelDinero, leerEstadoBeca } from '../web/js/trazabilidad.js';
+import { ESCENA_VENCE } from '../web/js/scenario.js';
 
 const M = 1_000_000;
 const CONTRATO = '0xD27EEbe1019032c1f8cCD05205451E7da6FCB7F7';
@@ -128,4 +129,61 @@ test('la beca que recibe del fondo común cuadra: lo asignado cuenta como entrad
 test('calcularCuadra devuelve la diferencia exacta', () => {
   assert.deepEqual(calcularCuadra({ aportado: 10, delFondo: 0, pagado: 4, sobrante: 0, bloqueado: 6 }), { entradas: 10, salidas: 10, diferencia: 0, ok: true });
   assert.equal(calcularCuadra({ aportado: 10, delFondo: 2, pagado: 4, sobrante: 0, bloqueado: 6 }).diferencia, 2);
+});
+
+const palabraHex = (n) => ethers.toBeHex(BigInt(n), 32).slice(2);
+const structBeca = ({ estudiante = 0n, monto = 0, saldo = 0, vence = 0, cupo = 0, registradas = 0, pagadas = 0, estado = 0 }) =>
+  '0x' + [BigInt(estudiante), monto, saldo, vence, cupo, registradas, pagadas, estado].map(palabraHex).join('');
+
+test('una beca que no existe NO se muestra como Activa ni como que cuadra', () => {
+  for (const estadoBeca of [
+    { existe: false, saldo: 0, estado: null, montoPorMateria: 0, cupo: 0 },
+    { saldo: 0, estado: 'Activa', montoPorMateria: 0, cupo: 0 }, // el struct vacío, sin la marca nueva
+  ]) {
+    const v = construirViaje({ ...base, beca: 99, logs: [], recibos: {}, bloques: {}, estadoBeca });
+    assert.equal(v.existe, false);
+    assert.equal(v.estado, null);
+    assert.equal(v.cuadra, null);
+    assert.equal(v.resumen, null);
+    assert.equal(v.token_, null);
+    assert.deepEqual(v.eventos, []);
+    assert.equal(v.mensaje, 'Esta beca todavía no existe en la red');
+    assert.equal(etapaDelDinero(v), null);
+  }
+});
+
+test('leerEstadoBeca: el struct en ceros es una beca inexistente y uno completo se lee bien', async () => {
+  const vacia = await leerEstadoBeca(async () => structBeca({}), { contrato: CONTRATO }, 7);
+  assert.equal(vacia.existe, false);
+  assert.equal(vacia.estado, null);
+  const real = await leerEstadoBeca(async () => structBeca({ estudiante: ESTUDIANTE, monto: 50 * M, saldo: 80 * M, vence: ESCENA_VENCE, cupo: 2, registradas: 1, estado: 0 }), { contrato: CONTRATO }, 7);
+  assert.deepEqual([real.existe, real.estado, real.cupo, real.registradas, real.saldo, real.vence], [true, 'Activa', 2, 1, 80 * M, ESCENA_VENCE]);
+});
+
+test('etapaDelDinero: sigue la plata desde que se crea la beca hasta el fondo común', () => {
+  const { logs, recibos, bloques } = escenaCompleta();
+  const hasta = (bloque, saldo) =>
+    construirViaje({ ...base, logs: logs.filter((l) => parseInt(l.blockNumber, 16) <= bloque), recibos, bloques, estadoBeca: { saldo, estado: 'Activa', montoPorMateria: 50 * M, cupo: 2 } });
+  assert.equal(etapaDelDinero(hasta(100, 0)).clave, 'creada');
+  assert.equal(etapaDelDinero(hasta(101, 80 * M)).clave, 'bloqueado');
+  assert.equal(etapaDelDinero(hasta(102, 80 * M)).clave, 'acta');
+  assert.equal(etapaDelDinero(hasta(103, 30 * M)).clave, 'pagado');
+  const fin = etapaDelDinero(hasta(104, 0));
+  assert.deepEqual([fin.clave, fin.indice, fin.total], ['fondo', 5, 6]);
+});
+
+test('buscarBecaDeLaEscena: encuentra la escena más nueva leyendo sólo la red', async () => {
+  const becas = {
+    1: { cupo: 2, vence: 1, saldo: 80 * M }, // no es de escena
+    2: { cupo: 1, vence: 1, saldo: 0 },
+    3: { cupo: 2, vence: ESCENA_VENCE, saldo: 80 * M, monto: 50 * M },
+    4: { cupo: 1, vence: ESCENA_VENCE, saldo: 10 * M, monto: 40 * M },
+  };
+  const fabricar = (registradas3) => async (metodo, [{ data }]) => {
+    if (data.startsWith('0x47e66ff4')) return '0x' + palabraHex(4);
+    const id = parseInt(data.slice(-64), 16);
+    return structBeca({ monto: becas[id].monto ?? 50 * M, saldo: becas[id].saldo, vence: becas[id].vence, cupo: becas[id].cupo, registradas: id === 3 ? registradas3 : 0 });
+  };
+  assert.deepEqual(await buscarBecaDeLaEscena(fabricar(0), { contrato: CONTRATO }, ESCENA_VENCE), { origen: 3, destino: 4, lista: true });
+  assert.equal((await buscarBecaDeLaEscena(fabricar(1), { contrato: CONTRATO }, ESCENA_VENCE)).lista, false);
 });

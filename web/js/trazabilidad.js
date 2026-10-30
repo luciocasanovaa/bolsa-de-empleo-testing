@@ -12,7 +12,7 @@ const TOPICOS = {
   '0x793181623bb86aaa517976040d528d1b86e2e374aa958e4ba3e22ba1a5acbb84': 'cierre',
   '0xad2cbaf9bfb3b42660d2e5ae0d36ad35ebe2c8826ff0fb9a3f11ea4e51af6f62': 'fondo',
 };
-const SEL = { becas: '0x950893cc', tesoreria: '0xe933dc54', fondoComun: '0x85b120bf', balanceOf: '0x70a08231' };
+const SEL = { totalBecas: '0x47e66ff4', becas: '0x950893cc', tesoreria: '0xe933dc54', fondoComun: '0x85b120bf', balanceOf: '0x70a08231' };
 const TRAMO = 5000;
 
 const palabra = (hex, i) => hex.slice(2 + i * 64, 2 + (i + 1) * 64);
@@ -70,6 +70,11 @@ export function calcularCuadra({ aportado, delFondo, pagado, sobrante, bloqueado
 }
 
 export function construirViaje({ beca, contrato, token, tesoreria, logs, recibos, bloques, estadoBeca, generado = null }) {
+  // El struct vacío de una beca inexistente se lee como "Activa" con todo en cero: no se debe mostrar como
+  // si hubiera un recorrido que "cuadra". Quien dibuja la pantalla muestra `mensaje` y oculta el resto.
+  if (estadoBeca.existe === false || !(estadoBeca.cupo > 0)) {
+    return { beca, existe: false, contrato, token, generado, estado: null, eventos: [], resumen: null, cuadra: null, token_: null, mensaje: 'Esta beca todavía no existe en la red' };
+  }
   const sponsors = new Map();
   const sponsor = (dir) => {
     if (!sponsors.has(dir)) sponsors.set(dir, `Sponsor ${sponsors.size + 1}`);
@@ -99,6 +104,7 @@ export function construirViaje({ beca, contrato, token, tesoreria, logs, recibos
   const fallasToken = eventos.filter((e) => !e.coincideConToken).map((e) => ({ tipo: e.tipo, hash: e.hash }));
   return {
     beca,
+    existe: true,
     contrato,
     token,
     generado,
@@ -117,12 +123,16 @@ export function construirViaje({ beca, contrato, token, tesoreria, logs, recibos
 export async function leerEstadoBeca(rpc, { contrato }, beca) {
   const data = SEL.becas + beca.toString(16).padStart(64, '0');
   const r = await rpc('eth_call', [{ to: contrato, data }, 'latest']);
+  const cupo = numero(palabra(r, 4));
   return {
+    existe: cupo > 0, // una beca sin crear devuelve el struct en ceros
     estudiante: direccion(palabra(r, 0)),
     montoPorMateria: numero(palabra(r, 1)),
     saldo: numero(palabra(r, 2)),
-    cupo: numero(palabra(r, 4)),
-    estado: ['Activa', 'Finalizada', 'Cerrada'][numero(palabra(r, 7))] ?? 'Desconocido',
+    vence: numero(palabra(r, 3)),
+    cupo,
+    registradas: numero(palabra(r, 5)),
+    estado: cupo > 0 ? (['Activa', 'Finalizada', 'Cerrada'][numero(palabra(r, 7))] ?? 'Desconocido') : null,
   };
 }
 
@@ -183,3 +193,38 @@ export const descripcion = (e) => ({
   fondo: 'El fondo común aportó a esta beca (propuesta aprobada por una persona).',
 }[e.tipo]);
 
+
+// En qué paso está la plata de una beca (para marcarlo en un camino o línea de progreso).
+export const ETAPAS = ['creada', 'bloqueado', 'acta', 'pagado', 'cerrada', 'fondo'];
+export function etapaDelDinero(viaje) {
+  if (!viaje?.existe) return null;
+  const r = viaje.resumen;
+  const cuenta = (tipo) => viaje.eventos.filter((e) => e.tipo === tipo).length;
+  const actasVigentes = cuenta('acta') - cuenta('revocada') - cuenta('pago');
+  let clave;
+  let etiqueta;
+  if (cuenta('cierre') > 0 && r.sobrante > 0) [clave, etiqueta] = ['fondo', 'El sobrante pasó al fondo común'];
+  else if (cuenta('cierre') > 0) [clave, etiqueta] = ['cerrada', 'La beca se cerró sin sobrante'];
+  else if (r.pagado > 0) [clave, etiqueta] = ['pagado', 'La plata ya llegó al estudiante'];
+  else if (actasVigentes > 0) [clave, etiqueta] = ['acta', 'Acta firmada: la plata espera la ventana de seguridad o el pago'];
+  else if (r.aportado + r.delFondo > 0) [clave, etiqueta] = ['bloqueado', 'La plata está bloqueada en el contrato'];
+  else [clave, etiqueta] = ['creada', 'Beca creada, todavía sin fondos'];
+  return { clave, etiqueta, indice: ETAPAS.indexOf(clave), total: ETAPAS.length };
+}
+
+// Encuentra la escena de la demo leyendo solo la red (sin onchain.json): la última beca de dos materias y
+// la última de una, marcadas con el vencimiento de escena. `lista` = nadie firmó y hay fondos para pagar.
+export async function buscarBecaDeLaEscena(rpc, { contrato }, venceEscena) {
+  const total = numero(palabra(await rpc('eth_call', [{ to: contrato, data: SEL.totalBecas }, 'latest']), 0));
+  const hallado = {};
+  for (let id = total; id >= 1 && id > total - 40 && !(hallado[2] && hallado[1]); id--) {
+    const b = await leerEstadoBeca(rpc, { contrato }, id);
+    if (b.vence === venceEscena) hallado[b.cupo] ??= { id, b };
+  }
+  const o = hallado[2];
+  return {
+    origen: o?.id ?? null,
+    destino: hallado[1]?.id ?? null,
+    lista: Boolean(o && o.b.registradas === 0 && o.b.saldo >= o.b.montoPorMateria),
+  };
+}

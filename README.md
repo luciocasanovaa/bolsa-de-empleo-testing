@@ -21,7 +21,7 @@ Becas universitarias que se pagan por materia aprobada. Los fondos quedan en un 
 Las pantallas (portada, camino de Brote, página "El viaje del dinero", estilos) fueron un **prototipo de referencia** y se sacaron de `main`: **la interfaz tiene que adaptarse a lo que está haciendo el compañero que se encarga del UX/UI**, no al revés. Lo que queda en `main` es la lógica que esa interfaz debe consumir:
 
 - `web/js/backend.js`: `crearBackend(config)` devuelve el modo simulado o el de Sepolia con la misma interfaz (`estado`, `depositar`, `registrarAprobacion`, `revocarAprobacion`, `liberar`, `cerrarBeca`, `asignarDeFondo`).
-- `web/js/onchain.js` (`leerOnchain`, `rpcConRespaldo`, `cargarRegistro`) y `web/js/trazabilidad.js` (`reunirViaje`, `construirViaje`, `calcularCuadra`, `seguirTransaccion`): lectura pública de la red y el viaje del dinero de una beca, con el control "¿Cuadra?".
+- `web/js/onchain.js` (`leerOnchain`, `rpcConRespaldo`, `cargarRegistro`) y `web/js/trazabilidad.js` (`reunirViaje`, `construirViaje`, `calcularCuadra`, `seguirTransaccion`, `etapaDelDinero`, `buscarBecaDeLaEscena`): lectura pública de la red y el viaje del dinero de una beca, con el control "¿Cuadra?". Una beca inexistente devuelve `existe: false` y un `mensaje`: la interfaz debe mostrarlo y ocultar el diagrama y el "¿Cuadra?". `etapaDelDinero` dice en qué paso está la plata (para marcarlo en un camino) y `buscarBecaDeLaEscena` encuentra la beca de la demo leyendo solo la red, sin `onchain.json`.
 - `web/js/proposal.js`: `proponerReparto` para el fondo común.
 - `web/data/onchain.json`: respaldo si ningún RPC responde (lo genera `node scripts/escena.mjs flujo`).
 
